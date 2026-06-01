@@ -6,11 +6,22 @@ import { NavLink } from "react-router-dom";
 export const Login = () => {
     const [form, setForm] = useState({username: "", password: ""});
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (loading) return;
+        setLoading(true);
+        try {
+            
+        } catch (error: any) {
+            
+        } finally {
+
+        };
         
-    }
+    };
 
     return (
         <>
