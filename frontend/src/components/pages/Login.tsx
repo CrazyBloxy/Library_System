@@ -26,34 +26,42 @@ export const Login = () => {
     };
 
     return (
-        <div className="border-4 shadow-sm justify-center relative mt-30 ml-125 w-100 h-70">
-            <div className="flex justify-center items-center flex-col space-y-6 mt-15">
-                <label className="input validator">
-                    <PiFinnTheHumanThin />
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        pattern="[A-Za-z][A-Za-z0-9\-]*"
-                        minLength={3}
-                        maxLength={30}
-                    />
-                </label>
+        <form onSubmit={handleSubmit}>
+            <div className="border-3 border-gray-700 bg-gray-800 shadow-sm justify-center relative mt-30 ml-125 w-100 h-80">
+                <h1 className="text-blue-300 text-6xl mt-3 ml-8">Login</h1>
+                <div className="flex justify-center items-center flex-col space-y-8 mt-6">
+                    <label className="input validator">
+                        <PiFinnTheHumanThin />
+                        <input
+                            type="text"
+                            required
+                            placeholder="Username"
+                            pattern="[A-Za-z][A-Za-z0-9\-]*"
+                            minLength={3}
+                            maxLength={30}
+                            value={form.username}
+                            onChange={(e) => setForm({...form, username: e.target.value})}
+                        />
+                    </label>
 
-                <label className="input validator">
-                    <PiLockKeyFill />
-                    <input
-                        type="password"
-                        required
-                        placeholder="Password"
-                        minLength={8}
-                        pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
-                        title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
-                    />
-                </label>
+                    <label className="input validator">
+                        <PiLockKeyFill />
+                        <input
+                            type="password"
+                            required
+                            placeholder="Password"
+                            minLength={8}
+                            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                            value={form.password}
+                            onChange={(e) => setForm({...form, password: e.target.value})}
+                        />
+                    </label>
+                    <button className="btn btn-soft btn-accent">
+                        Login
+                    </button>
+                </div>
             </div>
-
-        </div>
-
+        </form>
 
     );
 };
