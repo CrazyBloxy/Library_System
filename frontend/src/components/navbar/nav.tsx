@@ -14,7 +14,7 @@ export const Navbar = () => {
       <>
         <div className="navbar bg-base-100 shadow-sm">
           <div className="navbar-start">
-            <NavLink to="/" className="btn btn-secondary">
+            <NavLink to="/" className="btn btn-error">
               <TiArrowLeftThick /> Back
             </NavLink>
           </div>
