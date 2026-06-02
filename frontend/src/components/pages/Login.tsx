@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+/* Icons */
+import { PiFinnTheHumanThin, PiLockKeyFill } from "react-icons/pi";
 
 
 
 export const Login = () => {
-    const [form, setForm] = useState({username: "", password: ""});
+    const [form, setForm] = useState({ username: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -14,63 +16,45 @@ export const Login = () => {
         if (loading) return;
         setLoading(true);
         try {
-            
-        } catch (error: any) {
-            
-        } finally {
 
+        } catch (error: any) {
+
+        } finally {
+            setLoading(false);
         };
-        
+
     };
 
     return (
-        <>
-            <nav className="text-center items-center justify-between flex flex-row w-full bg-gray-800 text-white">
-                <div className="flex flex-row m-7">
-                    <NavLink to="/" className="text-xs flex flex-row items-center font-bold">
-                        Back
-                    </NavLink>
-                </div>
-            </nav>
-            
-            <div className="justify-center flex-1 text-center bg-gray-500 text-4xl mt-10 ml-145 w-50 h-15">
-                <h1> Staff Login </h1>
-            </div>
-            <div className="flex items-center justify-center mt-15">
-                <form onSubmit={handleSubmit} className="space-y-10 border-2 bg-white">
-
-                    {/* Username */}
-                    <div>
-                        <input type="username"
+        <div className="border-4 shadow-sm justify-center relative mt-30 ml-125 w-100 h-70">
+            <div className="flex justify-center items-center flex-col space-y-6 mt-15">
+                <label className="input validator">
+                    <PiFinnTheHumanThin />
+                    <input
+                        type="text"
                         placeholder="Username"
-                        value={form.username}
-                        onChange={(e) => setForm({...form, username: e.target.value})}
-                        className="relative flex item-center placeholder-gray-400 mt-3"
-                        />
-                    </div>
+                        pattern="[A-Za-z][A-Za-z0-9\-]*"
+                        minLength={3}
+                        maxLength={30}
+                    />
+                </label>
 
-                    {/* Password */}
-                    <div>
-                        <input type="password"
+                <label className="input validator">
+                    <PiLockKeyFill />
+                    <input
+                        type="password"
+                        required
                         placeholder="Password"
-                        value={form.password}
-                        onChange={(e) => setForm({...form, password: e.target.value})}
-                        className="relative flex item-center placeholder-gray-400"
-                        />
-                    </div>
-
-                    {/* Submit */}
-                    <div>
-                        <button type="submit" className="text-white bg-blue-500 w-full">
-                            Submit
-                        </button>
-                    </div>
-                </form>
+                        minLength={8}
+                        pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                        title="Must be more than 8 characters, including number, lowercase letter, uppercase letter"
+                    />
+                </label>
             </div>
-            
-        </>
-        
-        
+
+        </div>
+
+
     );
 };
 

@@ -11,13 +11,11 @@ import { StudentForm } from "./components/forms/StudentForm"; */
 import { Navbar }  from "./components/navbar/nav";
 
 function App() {
-  const location = useLocation();
-
 
   return (
     <div>
       {/* Navigation Bar (Public) */}
-      {location.pathname !== '/login' && <Navbar />}
+      <Navbar />
 
       {/* Main Content */}
       <main>
