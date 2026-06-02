@@ -27,7 +27,7 @@ export const Navbar = () => {
     <>
       <div className="navbar bg-base-100 shadow-sm">
         <div className="navbar-start">
-          <a className="text-4xl ml-3 text-amber-500 font-bold ">Library System</a>
+          <h1 className="text-4xl ml-3 text-amber-500 font-bold ">Library System</h1>
         </div>
 
         <div className="navbar-end">

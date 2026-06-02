@@ -14,7 +14,7 @@ function App() {
 
   return (
     <div>
-      {/* Navigation Bar (Public) */}
+      {/* Navigation Bar */}
       <Navbar />
 
       {/* Main Content */}
