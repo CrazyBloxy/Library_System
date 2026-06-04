@@ -54,7 +54,7 @@ export const BorrowForm = ({ onClose }: closeModal) => {
                             required
                             placeholder="Book ID"
                             maxLength={30}
-                            value={form.studentID}
+                            value={form.bookID}
                             onChange={(e) => setForm({ ...form, bookID: e.target.value })}
                         />
                     </label>

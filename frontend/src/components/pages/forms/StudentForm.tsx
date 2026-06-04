@@ -65,7 +65,7 @@ export const StudentForm = ({ onClose }: closeModal) => {
                             required
                             placeholder="Section"
                             maxLength={30}
-                            value={form.studentID}
+                            value={form.section}
                             onChange={(e) => setForm({ ...form, section: e.target.value })}
                         />
                     </label>
