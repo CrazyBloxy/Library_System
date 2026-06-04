@@ -10,7 +10,7 @@ interface closeModal {
 
 
 export const StudentForm = ({ onClose }: closeModal) => {
-    const [form, setForm] = useState({ name: "", studentID: "" });
+    const [form, setForm] = useState({ name: "", studentID: "", section: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -55,6 +55,18 @@ export const StudentForm = ({ onClose }: closeModal) => {
                             maxLength={30}
                             value={form.studentID}
                             onChange={(e) => setForm({ ...form, studentID: e.target.value })}
+                        />
+                    </label>
+
+                    <label className="input validator">
+                        <FaIdBadge />
+                        <input
+                            type="text"
+                            required
+                            placeholder="Section"
+                            maxLength={30}
+                            value={form.studentID}
+                            onChange={(e) => setForm({ ...form, section: e.target.value })}
                         />
                     </label>
         

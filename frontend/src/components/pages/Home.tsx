@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
 /* Forms */
-import { StudentForm } from "../forms/StudentForm";
-import { BorrowForm } from "../forms/BorrowForm";
-import { ReturnForm } from "../forms/ReturnForm";
+import { StudentForm } from "./forms/StudentForm";
+import { BorrowForm } from "./forms/BorrowForm";
+import { ReturnForm } from "./forms/ReturnForm";
 
 export const Home = () => {
     const [activeForm, setActiveForm] = useState<string | null>(null);

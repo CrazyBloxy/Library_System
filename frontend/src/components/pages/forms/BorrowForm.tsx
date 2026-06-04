@@ -9,8 +9,8 @@ interface closeModal {
 }
 
 
-export const ReturnForm = ({ onClose }: closeModal) => {
-    const [form, setForm] = useState({ name: "", studentID: "" });
+export const BorrowForm = ({ onClose }: closeModal) => {
+    const [form, setForm] = useState({ studentID: "", bookID: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -33,18 +33,7 @@ export const ReturnForm = ({ onClose }: closeModal) => {
         <>
             <form onSubmit={handleSubmit}>
                 <div className="flex justify-center items-center flex-col space-y-8 mt-6">
-                    <h1 className="text-blue-300 text-5xl">Returnt Form</h1>
-                    <label className="input validator">
-                        <PiFinnTheHumanThin />
-                        <input
-                            type="text"
-                            required
-                            placeholder="Name"
-                            maxLength={30}
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        />
-                    </label>
+                    <h1 className="text-blue-300 text-5xl">Borrow Form</h1>
 
                     <label className="input validator">
                         <FaIdBadge />
@@ -55,6 +44,18 @@ export const ReturnForm = ({ onClose }: closeModal) => {
                             maxLength={30}
                             value={form.studentID}
                             onChange={(e) => setForm({ ...form, studentID: e.target.value })}
+                        />
+                    </label>
+
+                    <label className="input validator">
+                        <FaIdBadge />
+                        <input
+                            type="text"
+                            required
+                            placeholder="Book ID"
+                            maxLength={30}
+                            value={form.studentID}
+                            onChange={(e) => setForm({ ...form, bookID: e.target.value })}
                         />
                     </label>
         
