@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 /* Icons */
 import { TiArrowLeftThick } from "react-icons/ti";
@@ -6,6 +6,7 @@ import { MdOutlineLogin } from "react-icons/md";
 
 
 export const Navbar = () => {
+  const navigate = useNavigate();
   const location = useLocation();
   const LoginNav = ["/login"]
 
@@ -14,9 +15,9 @@ export const Navbar = () => {
       <>
         <div className="navbar bg-base-100 shadow-sm">
           <div className="navbar-start">
-            <NavLink to="/" className="btn btn-error">
+            <button onClick={() => navigate("/")} className="btn btn-error">
               <TiArrowLeftThick /> Back
-            </NavLink>
+            </button>
           </div>
         </div>
       </>
@@ -31,9 +32,9 @@ export const Navbar = () => {
         </div>
 
         <div className="navbar-end">
-          <NavLink to="/login" className="btn btn-accent">
+          <button onClick={() => navigate("/login")} className="btn btn-accent">
             Staff Login <MdOutlineLogin className="size-5"/>
-          </NavLink>
+          </button>
         </div>
       </div>
     </>
