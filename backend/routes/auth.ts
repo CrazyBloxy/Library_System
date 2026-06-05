@@ -134,37 +134,15 @@ router.post("/return", async (req: Request, res: Response) => {
             return res.status(404).json({ message: "This Book ID code does not exist in the inventory." });
         }
 
-        await pool.query("BEGIN");  // Staging the update before finalizing
-
-        // If successfull, it will run this and update
-        const updateLogQuery = `
+        const query = `
             UPDATE borrow_and_return_logs 
-            SET return_date = NOW(), 
-                status = 'Available'
-            WHERE student_id = $1 
-              AND book_id = $2 
-              AND status = 'Not Available'
+            SET status = 'Pending Return'
+            WHERE student_id = $1 AND book_id = $2 AND status = 'Not Available'
             RETURNING *;
         `;
-        const logResult = await pool.query(updateLogQuery, [student_id, book_id]);
+        const logResult = await pool.query(query, [student_id, book_id]);
+        if (logResult.rowCount === 0) return res.status(404).json({ message: "No active checkout record found." });
 
-        if (logResult.rowCount === 0) {
-            await pool.query("ROLLBACK"); // Cancel everything safely
-            return res.status(400).json({ 
-                message: "This book has already been returned, or there is no active borrow record." 
-            });
-        }
-
-        // If successfull, it will run this and update
-        const updateBookQuery = `
-            UPDATE books 
-            SET status = 'Available' 
-            WHERE book_id = $1;
-        `;
-        await pool.query(updateBookQuery, [book_id]);
-        
-        await pool.query("COMMIT"); // Finalize all changes
-        
         // Sends feedback
         res.status(200).json({
             message: "Book successfully Returned!",
