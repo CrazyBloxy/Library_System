@@ -1,6 +1,7 @@
 import express, { NextFunction, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import authRoutes from "./routes/auth.js";
 
 
 dotenv.config();
@@ -13,6 +14,9 @@ app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:5173' 
 }));
+
+// Linking Routes
+app.use("/api", authRoutes)
 
 
 // Root Route that displays if backend is running
