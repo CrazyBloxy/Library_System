@@ -1,9 +1,9 @@
 import express, { Request, Response } from "express";
 import pool from "../config/db.js";
 
-
 const router = express.Router();
 
+// ========================================== FORMS =============================================
 
 // Student Form (One-Time-Register)
 router.post("/studentform", async (req: Request, res: Response) => {
@@ -138,7 +138,7 @@ router.post("/returnform", async (req: Request, res: Response) => {
         const query = `
             UPDATE borrow_and_return_logs 
             SET status = 'Pending Return'
-            WHERE student_id = $1 AND book_id = $2 AND status = 'Not Available'
+            WHERE student_id = $1 AND book_id = $2 AND status = 'Checked Out'
             RETURNING *;
         `;
         const logResult = await pool.query(query, [student_id, book_id]);
@@ -157,7 +157,9 @@ router.post("/returnform", async (req: Request, res: Response) => {
     }
 });
 
-// GET
+// ========================================== FETCH DATABASE =============================================
+
+// Get Books Database
 router.get("/bookdb", async (req: Request, res: Response) => {
     try {
         // Gets the book intentory
@@ -180,6 +182,7 @@ router.get("/bookdb", async (req: Request, res: Response) => {
     }
 });
 
+// Get Students Database
 router.get("/studentdb", async (req: Request, res: Response) => {
     try {
         // Gets the student data
@@ -202,10 +205,9 @@ router.get("/studentdb", async (req: Request, res: Response) => {
     }
 });
 
-
+// Get borrow and return form logs Database
 router.get("/admin/logs", async (req: Request, res: Response) => {
     try {
-        // Gets the student data
         const query = `
             SELECT 
                 logs.id, logs.student_id, student.name, student.section,
@@ -229,99 +231,128 @@ router.get("/admin/logs", async (req: Request, res: Response) => {
     }
 });
 
-router.patch("/admin/accept-borrow", async (req: Request, res: Response) => {
+// ========================================== CONDITIONAL =============================================
+
+// Accept Borrow Form Function
+router.patch("/admin/accept-borrow/:id", async (req: Request, res: Response) => {
+    const client = await pool.connect();
     try {
-        const { student_id, book_id } = req.body;
-        if (!student_id || !book_id) {
-            return res.status(400).json({ message: "Student ID and Book ID are required." });
-        }
+        const { id } = req.params;
 
-        await pool.query("BEGIN");  // Staging the update before finalizing
+        await client.query("BEGIN");  // Staging the update before finalizing
 
-        // If successfull, it will run this and update
+        // Updates borrow_date and status
         const updateLogQuery = `
             UPDATE borrow_and_return_logs 
             SET borrow_date = NOW(),
                 status = 'Checked Out'
-            WHERE student_id = $1 
-              AND book_id = $2 
+            WHERE id = $1 
               AND status = 'Pending Borrow'
             RETURNING *;
         `;
-        const logResult = await pool.query(updateLogQuery, [student_id, book_id]);
+        const logResult = await client.query(updateLogQuery, [id]);
 
         if (logResult.rowCount === 0) {
-            await pool.query("ROLLBACK"); // Cancel everything safely
-            return res.status(400).json({ 
-                message: "This book has already been borrowed, or there is no active borrow record." 
+            await client.query("ROLLBACK"); // Cancel everything safely
+            return res.status(400).json({
+                message: "This book has already been borrowed, or there is no active borrow record."
             });
         }
 
-        // If successfull, it will run this and update
+        const bookId = logResult.rows[0].book_id;
+
+        // Updates status
         const updateBookQuery = `
             UPDATE books 
             SET status = 'Not Available' 
             WHERE book_id = $1;
         `;
-        await pool.query(updateBookQuery, [book_id]);
-        
-        await pool.query("COMMIT"); // Finalize all changes
+        await client.query(updateBookQuery, [bookId]);
+
+        await client.query("COMMIT"); // Finalize all changes
+
+        res.status(200).json({
+            message: "Borrow request approved successfully and inventory locked!",
+            data: logResult.rows[0]
+        });
+
     } catch (err: any) {
-        await pool.query("ROLLBACK");
+        await client.query("ROLLBACK");
         console.error("Borrow Approval Error:", err.message);
         res.status(500).json({ message: "Database transaction failed.", error: err.message });
+    } finally {
+        client.release();
     }
 });
 
-router.patch("/admin/accept-return", async (req: Request, res: Response) => {
+// Accepts Return Form Function
+router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => {
+    const client = await pool.connect();
     try {
-        const { student_id, book_id, condition } = req.body;
-        if (!student_id || !book_id || condition) {
-            return res.status(400).json({ message: "Student ID, Book ID, and condition are required." });
-        }
+        const { id } = req.params;
+        const { condition } = req.body;
 
-        await pool.query("BEGIN");  // Staging the update before finalizing
+        await client.query("BEGIN");  // Staging the update before finalizing
 
-        // If successfull, it will run this and update
+        // Updates return_date and status
         const updateLogQuery = `
             UPDATE borrow_and_return_logs 
             SET return_date = NOW(),
                 status = 'Available',
-                condition = $3
-            WHERE student_id = $1 
-              AND book_id = $2 
+                condition = $1
+            WHERE id = $2 
               AND status = 'Pending Return'
             RETURNING *;
         `;
-        const logResult = await pool.query(updateLogQuery, [student_id, book_id, condition]);
+        const logResult = await client.query(updateLogQuery, [condition, id]);
 
         if (logResult.rowCount === 0) {
             await pool.query("ROLLBACK"); // Cancel everything safely
-            return res.status(400).json({ 
-                message: "This book has already been returned, or there is no active borrow record." 
+            return res.status(400).json({
+                message: "This book has already been returned, or there is no active borrow record."
             });
         }
 
-        // If successfull, it will run this and update
+        const bookId = logResult.rows[0].book_id;
+
+        // Updates status
         const updateBookQuery = `
             UPDATE books 
-            SET status = 'Available' 
-            WHERE book_id = $1;
+            SET status = 'Available', condition = $1
+            WHERE book_id = $2;
         `;
-        await pool.query(updateBookQuery, [book_id]);
-        
-        await pool.query("COMMIT"); // Finalize all changes
+        await client.query(updateBookQuery, [condition, bookId]);
+
+        await client.query("COMMIT"); // Finalize all changes
+
+        res.status(200).json({
+            message: "Return request approved successfully and inventory locked!",
+            data: logResult.rows[0]
+        });
+
     } catch (err: any) {
-        await pool.query("ROLLBACK");
+        await client.query("ROLLBACK");
         console.error("Borrow Approval Error:", err.message);
         res.status(500).json({ message: "Database transaction failed.", error: err.message });
+    } finally {
+        client.release();
     }
 });
 
-router.put("/students/:student_id", async (req: Request, res: Response) => {
+// ========================================== UPDATE =============================================
+
+// Updates Student Data
+router.put("/admin/student/:student_id", async (req: Request, res: Response) => {
     try {
         const { student_id } = req.params;
         const { student_id: new_student_id, name, section, active } = req.body;
+
+        if (student_id !== new_student_id) {
+            const conflictCheck = await pool.query("SELECT * FROM students WHERE student_id = $1", [new_student_id]);
+            if (conflictCheck.rows.length > 0) {
+                return res.status(400).json({ message: "Student ID already exists." });
+            }
+        }
 
         const query = `
             UPDATE students 
@@ -332,7 +363,6 @@ router.put("/students/:student_id", async (req: Request, res: Response) => {
             WHERE student_id = $5
             RETURNING *;
         `;
-        
         const result = await pool.query(query, [new_student_id, name, section, active, student_id]);
 
         if (result.rowCount === 0) {
@@ -350,11 +380,18 @@ router.put("/students/:student_id", async (req: Request, res: Response) => {
     }
 });
 
-
-router.put("/admin/books/:book_id", async (req: Request, res: Response) => {
+// Updates Book Data
+router.put("/admin/book/:book_id", async (req: Request, res: Response) => {
     try {
         const { book_id } = req.params;
         const { book_id: new_book_id, title, author, copyright_date, status, condition } = req.body;
+
+        if (book_id !== new_book_id) {
+            const conflictCheck = await pool.query("SELECT * FROM books WHERE book_id = $1", [new_book_id]);
+            if (conflictCheck.rows.length > 0) {
+                return res.status(400).json({ message: "The new barcode code already exists." });
+            }
+        }
 
         const query = `
             UPDATE books 
@@ -367,7 +404,6 @@ router.put("/admin/books/:book_id", async (req: Request, res: Response) => {
             WHERE book_id = $7
             RETURNING *;
         `;
-
         const result = await pool.query(query, [new_book_id, title, author, copyright_date, status, condition, book_id]);
 
         if (result.rowCount === 0) {
@@ -385,7 +421,99 @@ router.put("/admin/books/:book_id", async (req: Request, res: Response) => {
     }
 });
 
+// ========================================== ADD/INSERT =============================================
+
+// Add New Book in the Database
+router.post("/admin/addbook", async (req: Request, res: Response) => {
+    try {
+        const { book_id, title, author, copyright_date, status, condition } = req.body;
+
+        if (!book_id || !title || !author || !copyright_date || !status || !condition) {
+            return res.status(400).json({ message: "Please provide all required fields."})
+        }
+
+        const checkbookID = await pool.query("SELECT * FROM books where book_id = $1", [book_id])
+        if (checkbookID.rows.length > 0) {
+            return res.status(400).json({ message: "This Book ID already existed."})
+        }
+
+        const query = `
+        INSERT INTO books (book_id, title, author, copyright_date, status, condition)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *`
+        const result = await pool.query(query, [book_id, title, author, copyright_date, status, condition])
+
+        res.status(201).json({
+            message: "Book has been successfully made!",
+            data: result.rows[0]
+        });
 
 
+    } catch (err: any) {
+        console.error("Book add error:", err.message);
+        res.status(500).json({ message: "Server database transaction failed.", error: err.message });
+    }
+});
+
+// ========================================== DELETE =============================================
+
+// Deletes when declined Borrow Form
+router.delete("/admin/logs/decline/:id", async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params; 
+
+        const query = `
+            DELETE FROM borrow_and_return_logs 
+            WHERE id = $1 AND status = 'Pending Borrow' 
+            RETURNING *;
+        `;
+        const result = await pool.query(query, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ 
+                message: "No active pending borrow request found matching that log identifier." 
+            });
+        }
+
+        res.status(200).json({
+            message: "Borrow application successfully declined and wiped from database queue!",
+            declinedTicket: result.rows[0]
+        });
+
+    } catch (err: any) {
+        console.error("Decline ticket log clear failure:", err.message);
+        res.status(500).json({ message: "Server database transaction failed.", error: err.message });
+    }
+});
+
+// Deletes Book Data
+router.delete("/admin/removebook/:book_id", async (req: Request, res: Response) => {
+    try {
+        const { book_id } = req.params;
+
+        const query = "DELETE FROM books WHERE book_id = $1 RETURNING *;";
+        const result = await pool.query(query, [book_id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Book barcode not found in catalog index." });
+        }
+
+        res.status(200).json({
+            message: "Book successfully purged from inventory archives!",
+            deletedAsset: result.rows[0]
+        });
+
+    } catch (err: any) {
+        console.error("Book deletion execution failure:", err.message);
+        
+        //If a book has history inside logs, standard configuration blocks hard drops
+        if (err.message.includes("violates foreign key constraint")) {
+            return res.status(400).json({ 
+                message: "Cannot destroy asset. This book has existing transactional log records linked to it." 
+            });
+        }
+        res.status(500).json({ message: "Server database transaction failed.", error: err.message });
+    }
+});
 
 export default router;
