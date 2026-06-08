@@ -1,29 +1,48 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 /* Icons */
 import { PiFinnTheHumanThin, PiLockKeyFill } from "react-icons/pi";
-
+/* API */
+import api from "../../services/api"
 
 
 export const Login = () => {
     const [form, setForm] = useState({ username: "", password: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
 
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (loading) return;
         setLoading(true);
+        setError("");
         try {
+            const { username, password } = form;
+            const response = await api.post('/api/login', { username, password });
+            if (response.data.success) {
+                localStorage.setItem("hasAccess", "true")
+                navigate("/dashboard")
+            }
 
-        } catch (error: any) {
-
+        } catch (err: any) {
+            console.error("Login attempt failed:", err);
+            const errMsg = err.response?.data?.message || "Connection to Express server failed.";
+            setError(errMsg);
         } finally {
             setLoading(false);
         };
 
     };
+
+    if (error) {
+        return (
+            <div className="alert alert-error max-w-6xl mx-auto mt-12">
+                <span>{error}</span>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit}>
@@ -40,7 +59,7 @@ export const Login = () => {
                             minLength={3}
                             maxLength={30}
                             value={form.username}
-                            onChange={(e) => setForm({...form, username: e.target.value})}
+                            onChange={(e) => setForm({ ...form, username: e.target.value })}
                         />
                     </label>
 
@@ -50,10 +69,8 @@ export const Login = () => {
                             type="password"
                             required
                             placeholder="Password"
-                            minLength={8}
-                            pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
                             value={form.password}
-                            onChange={(e) => setForm({...form, password: e.target.value})}
+                            onChange={(e) => setForm({ ...form, password: e.target.value })}
                         />
                     </label>
                     <button className="btn btn-soft btn-accent">

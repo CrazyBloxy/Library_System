@@ -135,6 +135,13 @@ router.post("/returnform", async (req: Request, res: Response) => {
             return res.status(404).json({ message: "This Book ID code does not exist in the inventory." });
         }
 
+        const book = bookCheck.rows[0];
+        if (book.condition === "Lost") {
+            return res.status(400).json({
+                message: "Transaction Denied. This book is marked as Lost. Please consult with the staff."
+            });
+        }
+
         const query = `
             UPDATE borrow_and_return_logs 
             SET status = 'Pending Return'
@@ -155,6 +162,25 @@ router.post("/returnform", async (req: Request, res: Response) => {
         console.error("Return transaction error:", err.message);
         res.status(500).json({ message: "Server database transaction failed.", error: err.message });
     }
+});
+
+// ========================================== STAFF LOGIN =============================================
+
+// Staff Login
+router.post('/login', (req, res) => {
+  const { username, password } = req.body;
+
+  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+    return res.status(200).json({
+      success: true,
+      message: "Access granted!"
+    });
+  }
+
+  return res.status(401).json({ 
+    success: false, 
+    message: "Invalid credentials." 
+  });
 });
 
 // ========================================== FETCH DATABASE =============================================
@@ -429,12 +455,12 @@ router.post("/admin/addbook", async (req: Request, res: Response) => {
         const { book_id, title, author, copyright_date, status, condition } = req.body;
 
         if (!book_id || !title || !author || !copyright_date || !status || !condition) {
-            return res.status(400).json({ message: "Please provide all required fields."})
+            return res.status(400).json({ message: "Please provide all required fields." })
         }
 
         const checkbookID = await pool.query("SELECT * FROM books where book_id = $1", [book_id])
         if (checkbookID.rows.length > 0) {
-            return res.status(400).json({ message: "This Book ID already existed."})
+            return res.status(400).json({ message: "This Book ID already existed." })
         }
 
         const query = `
@@ -460,7 +486,7 @@ router.post("/admin/addbook", async (req: Request, res: Response) => {
 // Deletes when declined Borrow Form
 router.delete("/admin/logs/decline/:id", async (req: Request, res: Response) => {
     try {
-        const { id } = req.params; 
+        const { id } = req.params;
 
         const query = `
             DELETE FROM borrow_and_return_logs 
@@ -470,8 +496,8 @@ router.delete("/admin/logs/decline/:id", async (req: Request, res: Response) => 
         const result = await pool.query(query, [id]);
 
         if (result.rowCount === 0) {
-            return res.status(404).json({ 
-                message: "No active pending borrow request found matching that log identifier." 
+            return res.status(404).json({
+                message: "No active pending borrow request found matching that log identifier."
             });
         }
 
@@ -505,11 +531,11 @@ router.delete("/admin/removebook/:book_id", async (req: Request, res: Response) 
 
     } catch (err: any) {
         console.error("Book deletion execution failure:", err.message);
-        
+
         //If a book has history inside logs, standard configuration blocks hard drops
         if (err.message.includes("violates foreign key constraint")) {
-            return res.status(400).json({ 
-                message: "Cannot destroy asset. This book has existing transactional log records linked to it." 
+            return res.status(400).json({
+                message: "Cannot destroy asset. This book has existing transactional log records linked to it."
             });
         }
         res.status(500).json({ message: "Server database transaction failed.", error: err.message });

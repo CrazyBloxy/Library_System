@@ -1,32 +1,16 @@
 export interface Student {
-  id: string;
+  student_id: string;
   name: string;
-  studentId: string;
-  role: "student";
+  section: string;
+  active: boolean;
 }
 
 export interface Book {
-  id: string;
+  book_id: string;
   title: string;
   author: string;
-  availableCopies: number;
-  status: "available" | "unavailable";
-  condition: "good" | "bad" | "lost";
+  copyright_date: number;
+  status: 'Available' | 'Not Available';
+  condition: 'Good' | 'Damaged' | 'Lost';
 }
 
-export interface BorrowRequest {
-  id: number;
-  studentId: string;
-  bookId: number;
-  requestDate: string;
-  status: "pending" | "approved" | "declined";
-}
-
-export interface ReturnRequest {
-    id: number;
-    studentId: string;
-    bookId: number;
-    requestDate: string;
-    status: "pending" | "returned";
-    IsDamaged: boolean;
-}
