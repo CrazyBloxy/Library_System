@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Home } from "./components/pages/Home";
 import { Login } from "./components/pages/Login";
 import { Dashboard } from "./components/pages/Dashboard";
+import { BookDashboard } from "./components/pages/BookDashboard";
+import { StudentDashboard } from "./components/pages/StudentDashboard";
 /* Navigation */
 import { Navbar }  from "./components/navbar/nav";
 
@@ -16,10 +18,16 @@ function App() {
       {/* Main Content */}
       <main>
         <Routes>
+          {/* Public Pages */}
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
 
+          {/* Admin Pages */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/booksdb" element={<BookDashboard />} />
+          <Route path="/dashboard/studentdb" element={<StudentDashboard />} />
+
+          {/* Error Page */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

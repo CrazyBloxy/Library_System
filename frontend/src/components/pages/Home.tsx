@@ -115,7 +115,7 @@ export const Home = () => {
                             ))
                         ) : (<tr>
                             <td colSpan={5} className="text-center text-2xl py-12 text-base-400 font-semibold">
-                                No books match your search query "{searchQuery}" {/* Rework this. */}
+                                No books match your search query "{searchQuery}" {/* Rework this!!!!!!!!!!!!!!!!!! */}
                             </td>
                         </tr>)}
                     </tbody>

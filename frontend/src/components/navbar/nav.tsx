@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 /* Icons */
 import { TiArrowLeftThick } from "react-icons/ti";
 import { MdOutlineLogin } from "react-icons/md";
+import { BiLogOut } from "react-icons/bi";
 
 
 export const Navbar = () => {
@@ -10,7 +11,9 @@ export const Navbar = () => {
   const location = useLocation();
   const navLocations = [
     "/login",
-    "/dashboard"
+    "/dashboard",
+    "/dashboard/studentdb",
+    "/dashboard/booksdb"
   ]
 
   if (location.pathname === navLocations[0]) {
@@ -27,7 +30,7 @@ export const Navbar = () => {
     );
   };
 
-  if (location.pathname === navLocations[1]) {
+  if (location.pathname === navLocations[1] || navLocations[2] || navLocations[3]) {
     return (
       <>
         <div className="navbar bg-base-100 shadow-sm">
@@ -36,17 +39,17 @@ export const Navbar = () => {
           </div>
           <div className="navbar-center hidden lg:flex">
             <ul className="menu menu-horizontal px-1 space-x-6">
-              <li><button>Student Database</button></li>
-              <li><button>Book Database</button></li>
-              <li><button>Borrow & Return Logs</button></li>
+              <li><button onClick={() => navigate("/dashboard/studentdb")} className="btn btn-soft">Student Database</button></li>
+              <li><button onClick={() => navigate("/dashboard/booksdb")} className="btn btn-soft">Book Database</button></li>
+              <li><button onClick={() => navigate("/dashboard")}className="btn btn-soft">Borrow & Return Logs</button></li>
             </ul>
           </div>
           <div className="navbar-end">
             <button onClick={() => {
               localStorage.removeItem("hasAccess");
               navigate("/login");
-            }} className="btn btn-error">
-              <TiArrowLeftThick /> Log Out
+            }} className="btn btn-error"> 
+              <BiLogOut /> Log Out
             </button>
           </div>
         </div>

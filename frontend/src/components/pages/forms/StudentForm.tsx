@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { NavLink } from "react-router-dom";
 /* Icons */
 import { PiFinnTheHumanThin } from "react-icons/pi";
 import { FaIdBadge } from "react-icons/fa";
