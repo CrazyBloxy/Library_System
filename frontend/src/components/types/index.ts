@@ -14,3 +14,16 @@ export interface Book {
   condition: 'Good' | 'Damaged' | 'Lost';
 }
 
+export interface Data_Logs {
+  id: number;
+  student_id: string;
+  name: string;
+  section: string;
+  book_id: string;
+  title: string;
+  borrow_date: string;
+  return_date: string;
+  status: 'Available' | 'Pending Borrow' | 'Checked Out' | 'Pending Return' | 'Returned';
+  condition: 'Good' | 'Damaged' | 'Lost';
+}
+

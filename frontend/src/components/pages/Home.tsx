@@ -32,7 +32,7 @@ export const Home = () => {
         navigate("/dashboard")
         return;
     }
-        const fetchBooks = async () => {
+        const fetchBooks = async () => { 
             try {
                 const response = await api.get<{ message: string; count: number; data: Book[] }>("/api/bookdb");
                 setBooks(response.data.data);
@@ -49,7 +49,7 @@ export const Home = () => {
 
     // Search Filter
     const filteredBooks = books.filter((book) => {
-        const query = searchQuery.toLowerCase();
+        const query = searchQuery.toLowerCase().trim();
         return (
             book.title?.toLowerCase().includes(query) ||
             book.author?.toLowerCase().includes(query) ||

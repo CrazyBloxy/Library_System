@@ -17,7 +17,7 @@ export const Login = () => {
         e.preventDefault();
         if (loading) return;
         setLoading(true);
-        setError("");
+        setError(""); // Resets Error Logs
         try {
             const { username, password } = form;
             const response = await api.post('/api/login', { username, password });

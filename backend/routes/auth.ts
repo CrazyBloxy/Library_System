@@ -81,7 +81,7 @@ router.post("/borrowform", async (req: Request, res: Response) => {
         }
 
         // Checks if theres already existing ticket to prevent dupelication
-        const ticketCheck = await pool.query("SELECT * FROM borrow_and_return_logs WHERE student_id = $1 AND book_id = $2 AND status = 'Not Available'", [student_id, book_id])
+        const ticketCheck = await pool.query("SELECT * FROM borrow_and_return_logs WHERE student_id = $1 AND book_id = $2 AND status = 'Pending Borrow'", [student_id, book_id])
         if (ticketCheck.rows.length > 0) {
             return res.status(400).json({
                 message: "Transaction Denied. This student already has an active ticket for this book and must return their current copy first."
@@ -209,7 +209,7 @@ router.get("/bookdb", async (req: Request, res: Response) => {
 });
 
 // Get Students Database
-router.get("/studentdb", async (req: Request, res: Response) => {
+router.get("/admin/studentdb", async (req: Request, res: Response) => {
     try {
         // Gets the student data
         const query = `
@@ -324,7 +324,7 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
         const updateLogQuery = `
             UPDATE borrow_and_return_logs 
             SET return_date = NOW(),
-                status = 'Available',
+                status = 'Returned',
                 condition = $1
             WHERE id = $2 
               AND status = 'Pending Return'

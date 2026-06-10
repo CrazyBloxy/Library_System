@@ -9,6 +9,7 @@ import { BiLogOut } from "react-icons/bi";
 export const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const locationpath = location.pathname;
   const navLocations = [
     "/login",
     "/dashboard",
@@ -16,7 +17,7 @@ export const Navbar = () => {
     "/dashboard/booksdb"
   ]
 
-  if (location.pathname === navLocations[0]) {
+  if (locationpath === navLocations[0]) {
     return (
       <>
         <div className="navbar bg-base-100 shadow-sm">
@@ -30,7 +31,7 @@ export const Navbar = () => {
     );
   };
 
-  if (location.pathname === navLocations[1] || navLocations[2] || navLocations[3]) {
+  if (locationpath === navLocations[1] || locationpath === navLocations[2] || locationpath === navLocations[3]) {
     return (
       <>
         <div className="navbar bg-base-100 shadow-sm">
