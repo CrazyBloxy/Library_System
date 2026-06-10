@@ -2,6 +2,8 @@ import { useState } from "react";
 /* Icons */
 import { PiFinnTheHumanThin } from "react-icons/pi";
 import { FaIdBadge } from "react-icons/fa";
+/* API */
+import api from "../../../services/api"
 
 interface closeModal {
     onClose: () => void;
@@ -9,24 +11,54 @@ interface closeModal {
 
 
 export const StudentForm = ({ onClose }: closeModal) => {
-    const [form, setForm] = useState({ name: "", studentID: "", section: "" });
+    const [form, setForm] = useState({ name: "", student_id: "", section: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (loading) return;
         setLoading(true);
+        setError(""); // Resets Error Logs
+        setSuccess("")
         try {
+            const { name, student_id, section } = form;
+            const response = await api.post('/api/studentform', { student_id, name, section });
 
-        } catch (error: any) {
+            if (response.data.success) {
+                console.log("Student has been added to the database.")
+                const successMsg = response.data?.message || "Student data saved successfully!";
+                setSuccess(successMsg)
+            }
+            
 
+        } catch (err: any) {
+            console.error("Login attempt failed:", err);
+            const errMsg = err.response?.data?.message || "Connection to Express server failed.";
+            setError(errMsg);
         } finally {
             setLoading(false);
         };
 
     };
+
+    if (error) {
+        return (
+            <div className="alert alert-error max-w-6xl mx-auto mt-12">
+                <span>{error}</span>
+            </div>
+        );
+    }
+
+    if (success) {
+        return (
+            <div className="alert alert-success max-w-6xl mx-auto mt-12">
+                <span>{success}</span>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -52,8 +84,8 @@ export const StudentForm = ({ onClose }: closeModal) => {
                             required
                             placeholder="Student ID"
                             maxLength={30}
-                            value={form.studentID}
-                            onChange={(e) => setForm({ ...form, studentID: e.target.value })}
+                            value={form.student_id}
+                            onChange={(e) => setForm({ ...form, student_id: e.target.value })}
                         />
                     </label>
 
@@ -68,7 +100,7 @@ export const StudentForm = ({ onClose }: closeModal) => {
                             onChange={(e) => setForm({ ...form, section: e.target.value })}
                         />
                     </label>
-        
+
                     <div className="flex flex-row justify-center items-center space-x-3">
                         <button type="button" onClick={onClose} className="btn btn-soft btn-error">Cancel</button>
                         <button type="submit" className="btn btn-soft btn-accent">Sign Up</button>
