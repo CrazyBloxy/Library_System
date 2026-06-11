@@ -108,9 +108,6 @@ export const BookDashboard = () => {
                     </tbody>
                 </table>
             </div>
-
-            
         </>
-
     );
 };

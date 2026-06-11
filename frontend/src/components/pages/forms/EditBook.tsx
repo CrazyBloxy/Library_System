@@ -1,5 +1,5 @@
 
-
+/* Services (Backend API) & Types */
 interface closeModal {
     onClose: () => void;
 }

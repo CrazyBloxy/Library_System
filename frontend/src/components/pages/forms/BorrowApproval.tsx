@@ -74,22 +74,49 @@ export const BorrowApproval = ({ onClose }: closeModal) => {
         );
     }
 
-
-
     return (
         <>
-            {logs.map((log) => (
-                <div className="card card-border bg-base-100 w-96">
-                    <div className="card-body">
-                        <h2 className="card-title">Card Title</h2>
-                        <p>A card component has a figure, a body part, and inside body there are title and actions parts</p>
-                        <div className="card-actions justify-end">
-                            <button onClick={() => handleAcceptBorrow(log.id)} className="btn btn-primary">Approve</button>
-                            <button className="btn btn-primary">Reject</button>
+            <div className="overflow-y-auto max-h-125 h-125">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full p-1 grow border-4">
+                    {logs.map((log) => (
+                        <div key={log.id} className="card card-border bg-base-100 w-full h-fit card-sm shadow-sm">
+                            <div className="card-body">
+                                <h2 className="card-title">{log.name} : {log.student_id}</h2>
+
+                                <div className="text-xs space-y-1 text-base-400 mt-1">
+                                    <p><span className="font-semibold text-base-content">Book ID:</span> {log.book_id}</p>
+                                    <p><span className="font-semibold text-base-content">Book Title:</span> <span className="italic text-blue-200">{log.title}</span></p>
+                                </div>
+
+                                <div className="card-actions justify-end">
+                                    <button
+                                        className="btn btn-xs btn-error btn-soft"
+                                        disabled={actionLoadingId !== null}
+                                    >
+                                        Reject
+                                    </button>
+                                    <button
+                                        onClick={() => handleAcceptBorrow(log.id)}
+                                        className="btn btn-xs btn-accent btn-soft min-w-17.5"
+                                        disabled={actionLoadingId !== null}
+                                    >
+                                        {actionLoadingId === log.id ? (
+                                            <span className="loading loading-spinner loading-xs"></span>
+                                        ) : (
+                                            "Approve"
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    ))}
                 </div>
-            ))};
+            </div>
+
+
+            <div className="flex self-center">
+                <button onClick={() => onClose()} className="btn btn-soft btn-error"> Back </button>
+            </div>
 
         </>
     );

@@ -134,7 +134,7 @@ export const Dashboard = () => {
             {/* Checks if activeForms has a string */}
             {activeForm && (
                 <div className="fixed bg-black/50 min-h-screen z-10 w-screen flex justify-center items-center top-0 left-0">
-                    <div className="bg-info-content p-20 w-150">
+                    <div className="bg-info-content p-8 w-325 h-150">
                         <div className="flex flex-col gap-4">
                             {formsComponents[activeForm]}
                         </div>
