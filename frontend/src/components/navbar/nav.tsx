@@ -14,7 +14,8 @@ export const Navbar = () => {
     "/login",
     "/dashboard",
     "/dashboard/studentdb",
-    "/dashboard/booksdb"
+    "/dashboard/booksdb",
+    "/dashboard/approval"
   ]
 
   if (locationpath === navLocations[0]) {
@@ -31,7 +32,7 @@ export const Navbar = () => {
     );
   };
 
-  if (locationpath === navLocations[1] || locationpath === navLocations[2] || locationpath === navLocations[3]) {
+  if (locationpath === navLocations[1] || locationpath === navLocations[2] || locationpath === navLocations[3] || locationpath === navLocations[4]) {
     return (
       <>
         <div className="navbar bg-base-100 shadow-sm">

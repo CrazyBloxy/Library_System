@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { TbDatabaseSearch } from "react-icons/tb";
 /* Services (Backend API) & Types */
 import api from "../../services/api";
-import type { Student } from '../types';
+import type { Student } from '../types/index';
 
 export const StudentDashboard = () => {
     const [students, setStudents] = useState<Student[]>([]);
@@ -12,7 +12,7 @@ export const StudentDashboard = () => {
     const [searchQuery, setSearchQuery] = useState<string>("");
 
     useEffect(() => {
-        const fetchBooks = async () => {
+        const fetchStudents = async () => {
             try {
                 const response = await api.get<{ message: string; count: number; data: Student[] }>("/api/admin/studentdb");
                 setStudents(response.data.data);
@@ -24,7 +24,7 @@ export const StudentDashboard = () => {
                 setLoading(false);
             }
         };
-        fetchBooks();
+        fetchStudents();
     }, []);
 
     if (loading) {

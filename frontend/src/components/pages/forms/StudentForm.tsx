@@ -27,42 +27,39 @@ export const StudentForm = ({ onClose }: closeModal) => {
             const { name, student_id, section } = form;
             const response = await api.post('/api/studentform', { student_id, name, section });
 
-            if (response.data.success) {
+            if (response.status === 201) {
                 console.log("Student has been added to the database.")
                 const successMsg = response.data?.message || "Student data saved successfully!";
                 setSuccess(successMsg)
+
+                setForm({ name: "", student_id: "", section: "" });
             }
-            
 
         } catch (err: any) {
-            console.error("Login attempt failed:", err);
+            console.error("Attempt failed:", err);
             const errMsg = err.response?.data?.message || "Connection to Express server failed.";
             setError(errMsg);
         } finally {
             setLoading(false);
-        };
+        }
 
     };
 
-    if (error) {
-        return (
-            <div className="alert alert-error max-w-6xl mx-auto mt-12">
-                <span>{error}</span>
-            </div>
-        );
-    }
-
-    if (success) {
-        return (
-            <div className="alert alert-success max-w-6xl mx-auto mt-12">
-                <span>{success}</span>
-            </div>
-        );
-    }
-
     return (
         <>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="w-full">
+                {success && (
+                    <div className="alert alert-success w-full max-w-md text-sm py-3 justify-center text-center animate-fade-in">
+                        <span>{success}</span>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="alert alert-error w-full max-w-md text-sm py-3 justify-center text-center">
+                        <span>{error}</span>
+                    </div>
+                )}
+
                 <div className="flex justify-center items-center flex-col space-y-8 mt-6">
                     <h1 className="text-blue-300 text-5xl">Student Form</h1>
                     <label className="input validator">
@@ -103,7 +100,20 @@ export const StudentForm = ({ onClose }: closeModal) => {
 
                     <div className="flex flex-row justify-center items-center space-x-3">
                         <button type="button" onClick={onClose} className="btn btn-soft btn-error">Cancel</button>
-                        <button type="submit" className="btn btn-soft btn-accent">Sign Up</button>
+                        <button
+                            type="submit"
+                            className="btn btn-soft btn-accent"
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <>
+                                    <span className="loading loading-spinner loading-xs"></span>
+                                    Signing Up...
+                                </>
+                            ) : (
+                                "Sign Up"
+                            )}
+                        </button>
                     </div>
                 </div>
             </form>

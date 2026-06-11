@@ -137,7 +137,7 @@ router.post("/returnform", async (req: Request, res: Response) => {
 
         const book = bookCheck.rows[0];
         if (book.condition === "Lost") {
-            return res.status(400).json({
+            return res.status(405).json({
                 message: "Transaction Denied. This book is marked as Lost. Please consult with the staff."
             });
         }

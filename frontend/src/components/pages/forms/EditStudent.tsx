@@ -9,6 +9,7 @@ export const EditStudent = ({ onClose }: closeModal) => {
 
     return (
         <>
+
         </>
     );
 };

@@ -1,19 +1,28 @@
 import { useState, useEffect } from 'react';
 /* Icons */
 import { TbDatabaseSearch } from "react-icons/tb";
+/* Forms */
+import { BorrowApproval } from './forms/BorrowApproval';
+import { ReturnApproval } from './forms/ReturnApproval';
 /* Services (Backend API) & Types */
 import api from "../../services/api";
 import type { Data_Logs } from '../types';
 
 export const Dashboard = () => {
+    const [activeForm, setActiveForm] = useState<string | null>(null);
     const [logs, setLogs] = useState<Data_Logs[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
+    const formsComponents: Record<string, React.ReactNode> = {
+        borrow: <BorrowApproval onClose={() => setActiveForm(null)} />,
+        return: <ReturnApproval onClose={() => setActiveForm(null)} />
+    }
+
 
     useEffect(() => {
-        const fetchBooks = async () => {
+        const fetchLogs = async () => {
             try {
                 const response = await api.get<{ message: string; count: number; data: Data_Logs[] }>("/api/admin/logs");
                 setLogs(response.data.data);
@@ -25,7 +34,7 @@ export const Dashboard = () => {
                 setLoading(false);
             }
         };
-        fetchBooks();
+        fetchLogs();
     }, []);
 
     if (loading) {
@@ -52,7 +61,7 @@ export const Dashboard = () => {
             log.name?.toLowerCase().includes(query) ||
             log.section?.toLowerCase().includes(query) ||
             log.book_id?.toLowerCase().includes(query) ||
-            log.title?.toLowerCase().includes(query) || 
+            log.title?.toLowerCase().includes(query) ||
             log.status?.toLowerCase().includes(query) ||
             log.condition?.toLowerCase().includes(query)
         );
@@ -115,6 +124,23 @@ export const Dashboard = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Opens Pop UI Forms */}
+            <div className="flex flex-row gap-3 justify-center mt-10">
+                <button onClick={() => setActiveForm("borrow")} className="btn btn-soft"> Borrow Approval </button>
+                <button onClick={() => setActiveForm("return")} className="btn btn-soft"> Return Approval </button>
+            </div>
+
+            {/* Checks if activeForms has a string */}
+            {activeForm && (
+                <div className="fixed bg-black/50 min-h-screen z-10 w-screen flex justify-center items-center top-0 left-0">
+                    <div className="bg-info-content p-20 w-150">
+                        <div className="flex flex-col gap-4">
+                            {formsComponents[activeForm]}
+                        </div>
+                    </div>
+                </div>
+            )}
 
         </>
     );
