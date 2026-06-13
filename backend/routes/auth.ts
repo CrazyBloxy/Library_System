@@ -80,12 +80,22 @@ router.post("/borrowform", async (req: Request, res: Response) => {
             });
         }
 
-        // Checks if theres already existing ticket to prevent dupelication
-        const ticketCheck = await pool.query("SELECT * FROM borrow_and_return_logs WHERE student_id = $1 AND book_id = $2 AND status = 'Pending Borrow'", [student_id, book_id])
-        if (ticketCheck.rows.length > 0) {
-            return res.status(400).json({
-                message: "Transaction Denied. This student already has an active ticket for this book and must return their current copy first."
-            });
+        // Checks if there's already an existing ticket from ANY student trying to borrow the same book to prevent duplication
+        const alreadyExistingTicketCheck = await pool.query("SELECT * FROM borrow_and_return_logs WHERE book_id = $1 AND status = 'Pending Borrow'", [book_id]);
+
+        if (alreadyExistingTicketCheck.rows.length > 0) {
+            // Check if the person who already holds the ticket is the CURRENT student or someone else
+            const existingTicket = alreadyExistingTicketCheck.rows[0];
+
+            if (existingTicket.student_id === student_id) {
+                return res.status(400).json({
+                    message: "Transaction Denied. You already have a pending ticket for this book."
+                });
+            } else {
+                return res.status(400).json({
+                    message: "Transaction Denied. Another student has already submitted a pending borrow request for this specific book copy."
+                });
+            }
         }
 
         // If successfull, it will run this and store it in the database
@@ -152,7 +162,7 @@ router.post("/returnform", async (req: Request, res: Response) => {
         if (logResult.rowCount === 0) return res.status(404).json({ message: "No active checkout record found." });
 
         // Sends feedback
-        res.status(200).json({
+        res.status(201).json({
             message: "Book successfully Returned!",
             data: logResult.rows[0]
         });
@@ -168,19 +178,19 @@ router.post("/returnform", async (req: Request, res: Response) => {
 
 // Staff Login
 router.post('/login', (req, res) => {
-  const { username, password } = req.body;
+    const { username, password } = req.body;
 
-  if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
-    return res.status(200).json({
-      success: true,
-      message: "Access granted!"
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        return res.status(200).json({
+            success: true,
+            message: "Access granted!"
+        });
+    }
+
+    return res.status(401).json({
+        success: false,
+        message: "Invalid credentials."
     });
-  }
-
-  return res.status(401).json({ 
-    success: false, 
-    message: "Invalid credentials." 
-  });
 });
 
 // ========================================== FETCH DATABASE =============================================
@@ -316,7 +326,11 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
     const client = await pool.connect();
     try {
         const { id } = req.params;
-        const { condition } = req.body;
+        const { book_condition } = req.body;
+
+         if (!book_condition) {
+            return res.status(400).json({ message: "Book condition is missing." });
+        }
 
         await client.query("BEGIN");  // Staging the update before finalizing
 
@@ -330,10 +344,10 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
               AND status = 'Pending Return'
             RETURNING *;
         `;
-        const logResult = await client.query(updateLogQuery, [condition, id]);
+        const logResult = await client.query(updateLogQuery, [book_condition, id]);
 
         if (logResult.rowCount === 0) {
-            await pool.query("ROLLBACK"); // Cancel everything safely
+            await client.query("ROLLBACK"); // Cancel everything safely
             return res.status(400).json({
                 message: "This book has already been returned, or there is no active borrow record."
             });
@@ -347,7 +361,7 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
             SET status = 'Available', condition = $1
             WHERE book_id = $2;
         `;
-        await client.query(updateBookQuery, [condition, bookId]);
+        await client.query(updateBookQuery, [book_condition, bookId]);
 
         await client.query("COMMIT"); // Finalize all changes
 

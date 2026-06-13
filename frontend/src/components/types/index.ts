@@ -23,7 +23,7 @@ export interface Data_Logs {
   title: string;
   borrow_date: string;
   return_date: string;
-  status: 'Available' | 'Pending Borrow' | 'Checked Out' | 'Pending Return' | 'Returned';
+  status: 'Pending Borrow' | 'Checked Out' | 'Pending Return' | 'Returned';
   condition: 'Good' | 'Damaged' | 'Lost';
 }
 

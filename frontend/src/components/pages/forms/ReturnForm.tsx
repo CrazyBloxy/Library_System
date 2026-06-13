@@ -26,7 +26,7 @@ export const ReturnForm = ({ onClose }: closeModal) => {
             const { student_id, book_id } = form;
             const response = await api.post('/api/returnform', { student_id, book_id });
 
-            if (response.status === 201) {
+            if (response.status === 200 || response.status === 201) {
                 console.log("Appeal has been added to the database.")
                 const successMsg = response.data?.message || "Request has sent successfully!";
                 setSuccess(successMsg)
