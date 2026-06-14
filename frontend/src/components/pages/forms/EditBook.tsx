@@ -4,13 +4,15 @@ import { FaIdBadge } from "react-icons/fa";
 import { PiFinnTheHumanThin } from "react-icons/pi";
 /* API */
 import api from "../../../services/api";
+import type { Book } from "../../types/index";
 
 interface closeModal {
     bookIdToEdit: string;
     onClose: () => void;
+    onBookUpdated: (updatedBook: Book) => void;
 }
 
-export const EditBook = ({ bookIdToEdit, onClose }: closeModal) => {
+export const EditBook = ({ bookIdToEdit, onClose, onBookUpdated }: closeModal) => {
     const [form, setForm] = useState({
         new_book_id: "", title: "", author: "", copyright_date: "", status: "", condition: ""
     });
@@ -51,6 +53,11 @@ export const EditBook = ({ bookIdToEdit, onClose }: closeModal) => {
                 console.log("Book details saved successfully.");
                 const successMsg = response.data?.message || "Book catalog updated successfully!";
                 setSuccess(successMsg);
+
+                if (response.data?.data) {
+                    const updatedRow = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+                    onBookUpdated(updatedRow);
+                }
 
                 setForm({ new_book_id: "", title: "", author: "", copyright_date: "", status: "", condition: "" });
             }

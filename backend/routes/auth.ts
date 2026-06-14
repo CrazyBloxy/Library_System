@@ -608,6 +608,20 @@ router.delete("/admin/removebook/:book_id", async (req: Request, res: Response) 
     try {
         const { book_id } = req.params;
 
+        const activeWorkflowCheck = await pool.query(
+            `SELECT * FROM borrow_and_return_logs 
+             WHERE book_id = $1 
+               AND status IN ('Pending Borrow', 'Checked Out', 'Pending Return')`,
+            [book_id]
+        );
+
+        if (activeWorkflowCheck.rows.length > 0) {
+            const activeStatus = activeWorkflowCheck.rows[0].status;
+            return res.status(400).json({
+                message: `Transaction Denied. This book cannot be deleted because it has an active tracking log status of: "${activeStatus}". Resolve the request queue first.`
+            });
+        }
+
         const query = "DELETE FROM books WHERE book_id = $1 RETURNING *;";
         const result = await pool.query(query, [book_id]);
 
@@ -627,6 +641,49 @@ router.delete("/admin/removebook/:book_id", async (req: Request, res: Response) 
         if (err.message.includes("violates foreign key constraint")) {
             return res.status(400).json({
                 message: "Cannot destroy asset. This book has existing transactional log records linked to it."
+            });
+        }
+        res.status(500).json({ message: "Server database transaction failed.", error: err.message });
+    }
+});
+
+router.delete("/admin/removestudent/:student_id", async (req: Request, res: Response) => {
+    try {
+        const { student_id } = req.params;
+
+        const activeStudentCheck = await pool.query(
+            `SELECT * FROM borrow_and_return_logs 
+             WHERE student_id = $1 
+               AND status IN ('Pending Borrow', 'Checked Out', 'Pending Return')`,
+            [student_id]
+        );
+
+        if (activeStudentCheck.rows.length > 0) {
+            const activeStatus = activeStudentCheck.rows[0].status;
+            return res.status(400).json({
+                message: `Transaction Denied. Cannot delete this profile. This student has an active library request log currently set to: "${activeStatus}".`
+            });
+        }
+
+        const query = "DELETE FROM students WHERE student_id = $1 RETURNING *;";
+        const result = await pool.query(query, [student_id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: "Student not found in catalog index." });
+        }
+
+        res.status(200).json({
+            message: "Student Data successfully purged from inventory archives!",
+            deletedAsset: result.rows[0]
+        });
+
+    } catch (err: any) {
+        console.error("Data deletion execution failure:", err.message);
+
+        //If a book has history inside logs, standard configuration blocks hard drops
+        if (err.message.includes("violates foreign key constraint")) {
+            return res.status(400).json({
+                message: "Cannot destroy asset. This student has existing transactional log records linked to it."
             });
         }
         res.status(500).json({ message: "Server database transaction failed.", error: err.message });

@@ -14,6 +14,7 @@ export const BookDashboard = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
+    const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchBooks = async () => {
@@ -30,6 +31,8 @@ export const BookDashboard = () => {
         };
         fetchBooks();
     }, []);
+
+
 
     // Search Filter
     const filteredBooks = books.filter((book) => {
@@ -58,14 +61,47 @@ export const BookDashboard = () => {
         );
     }
 
-    const formsComponents: Record<string, React.ReactNode> = {
-            edit: (
-                <EditBook 
-                    bookIdToEdit={modalState?.id || ""} 
-                    onClose={() => setModalState(null)} 
-                />
+    const handleUpdateBookState = (originalTargetBarcode: string, updatedBook: Book) => {
+        setBooks((prevBooks) =>
+            prevBooks.map((book) =>
+                book.book_id === originalTargetBarcode ? updatedBook : book
             )
-        };
+        );
+    };
+
+    const formsComponents: Record<string, React.ReactNode> = {
+        edit: (
+            <EditBook
+                bookIdToEdit={modalState?.id || ""}
+                onClose={() => setModalState(null)}
+                onBookUpdated={(updatedData) => handleUpdateBookState(modalState?.id || "", updatedData)}
+            />
+        )
+    };
+
+    const handleDeleteBook = async (bookId: string, bookTitle: string) => {
+        // Prevents accidental deletion
+        const confirmDelete = window.confirm(`Are you absolutely sure you want to permanently delete "${bookTitle}" (${bookId})?`);
+        if (!confirmDelete) return;
+
+        setDeleteLoadingId(bookId);
+        try {
+            // Targets your exact Express book removal route
+            const response = await api.delete(`/api/admin/removebook/${bookId}`);
+
+            if (response.status === 200 || response.status === 201) {
+                // 2. VISUAL SWEEP: Instantly drops the book from the screen list array
+                setBooks((prevBooks) => prevBooks.filter((book) => book.book_id !== bookId));
+                alert(response.data.message);
+            }
+        } catch (err: any) {
+            console.error("Delete tracking execution failed:", err);
+            const errMsg = err.response?.data?.message || "Could not complete book removal.";
+            alert(errMsg);
+        } finally {
+            setDeleteLoadingId(null);
+        }
+    };
 
     return (
         <>
@@ -106,8 +142,23 @@ export const BookDashboard = () => {
                                     <td>{book.copyright_date}</td>
                                     <td>{book.status}</td>
                                     <td>{book.condition}</td>
-                                    <th><button onClick={() => setModalState({ type: "edit", id: book.book_id })} className='btn btn-circle btn-warning w-20'>EDIT</button></th>
-                                    <th><button className='btn btn-circle btn-error w-20'>DELETE</button></th>
+                                    <th><button
+                                        onClick={() => setModalState({ type: "edit", id: book.book_id })}
+                                        className='btn btn-circle btn-warning w-20'
+                                    >
+                                        EDIT
+                                    </button></th>
+                                    <th> <button
+                                        onClick={() => handleDeleteBook(book.book_id, book.title)}
+                                        className='btn btn-circle btn-error w-20'
+                                        disabled={deleteLoadingId !== null}
+                                    >
+                                        {deleteLoadingId === book.book_id ? (
+                                            <span className="loading loading-spinner loading-xs"></span>
+                                        ) : (
+                                            "DELETE"
+                                        )}
+                                    </button></th>
                                 </tr>
                             ))
                         ) : (<tr>

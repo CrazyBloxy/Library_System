@@ -8,9 +8,10 @@ import api from "../../../services/api"
 interface closeModal {
     studentIdToEdit: string;
     onClose: () => void;
+    onStudentUpdated: (updatedStudent: any) => void;
 }
 
-export const EditStudent = ({ studentIdToEdit, onClose }: closeModal) => {
+export const EditStudent = ({ studentIdToEdit, onClose, onStudentUpdated }: closeModal) => {
     const [form, setForm] = useState({
         new_student_id: "", name: "", section: "", active: ""
     });
@@ -48,6 +49,12 @@ export const EditStudent = ({ studentIdToEdit, onClose }: closeModal) => {
                 console.log("Appeal has been added to the database.")
                 const successMsg = response.data?.message || "Request has sent successfully!";
                 setSuccess(successMsg)
+
+                if (response.data?.data) {
+                    // If your backend returns an array (e.g., result.rows), grab the first item [0]
+                    const updatedRow = Array.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+                    onStudentUpdated(updatedRow);
+                }
 
                 setForm({ new_student_id: "", name: "", section: "", active: "true" });
             }

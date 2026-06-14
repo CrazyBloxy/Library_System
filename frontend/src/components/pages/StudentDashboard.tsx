@@ -12,6 +12,7 @@ export const StudentDashboard = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
+    const [deleteLoadingId, setDeleteLoadingId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchStudents = async () => {
@@ -45,13 +46,45 @@ export const StudentDashboard = () => {
         );
     }
 
+    const handleUpdateStudentState = (originalTargetId: string, updatedStudent: Student) => {
+        setStudents((prevStudents) =>
+            prevStudents.map((student) =>
+                student.student_id === originalTargetId ? updatedStudent : student
+            )
+        );
+    };
+
     const formsComponents: Record<string, React.ReactNode> = {
         edit: (
-            <EditStudent 
-                studentIdToEdit={modalState?.id || ""} 
-                onClose={() => setModalState(null)} 
+            <EditStudent
+                studentIdToEdit={modalState?.id || ""}
+                onClose={() => setModalState(null)}
+                onStudentUpdated={(updatedData) => handleUpdateStudentState(modalState?.id || "", updatedData)} 
             />
         )
+    };
+
+    const handleDeleteStudent = async (studentId: string, studentName: string) => {
+        // Prevent accidental mouse click triggers
+        const confirmDelete = window.confirm(`Are you absolutely sure you want to permanently delete ${studentName} (${studentId})?`);
+        if (!confirmDelete) return;
+
+        setDeleteLoadingId(studentId); // Highlight only this specific row as loading
+        try {
+            const response = await api.delete(`/api/admin/removestudent/${studentId}`);
+
+            if (response.status === 200) {
+                // 2. VISUAL SWEEP: Instantly drop the row from the viewport list array
+                setStudents((prevStudents) => prevStudents.filter((student) => student.student_id !== studentId));
+                alert(response.data.message);
+            }
+        } catch (err: any) {
+            console.error("Delete tracking execution failed:", err);
+            const errMsg = err.response?.data?.message || "Could not complete record removal.";
+            alert(errMsg);
+        } finally {
+            setDeleteLoadingId(null);
+        }
     };
 
     // Search Filter
@@ -103,8 +136,22 @@ export const StudentDashboard = () => {
                                             {student.active ? "Active" : "Inactive"}
                                         </span>
                                     </td>
-                                    <th><button onClick={() => setModalState({ type: "edit", id: student.student_id })} className='btn btn-circle btn-warning w-20'>EDIT</button></th>
-                                    <th><button className='btn btn-circle btn-error w-20'>DELETE</button></th>
+                                    <th><button
+                                        onClick={() => setModalState({ type: "edit", id: student.student_id })}
+                                        className='btn btn-circle btn-warning w-20'
+                                    >EDIT
+                                    </button></th>
+                                    <th><button
+                                        onClick={() => handleDeleteStudent(student.student_id, student.name)}
+                                        className='btn btn-circle btn-error w-20'
+                                        disabled={deleteLoadingId !== null}
+                                    >
+                                        {deleteLoadingId === student.student_id ? (
+                                            <span className="loading loading-spinner loading-xs"></span>
+                                        ) : (
+                                            "DELETE"
+                                        )}
+                                    </button></th>
 
                                 </tr>
                             ))
