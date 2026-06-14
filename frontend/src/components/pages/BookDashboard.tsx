@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 /* Icons */
 import { TbDatabaseSearch } from "react-icons/tb";
+/* Forms */
+import { EditBook } from "./forms/EditBook";
 /* Services (Backend API) & Types */
 import api from "../../services/api";
 import type { Book } from "../types/index";
 
 
 export const BookDashboard = () => {
+    const [modalState, setModalState] = useState<{ type: string; id: string } | null>(null);
     const [books, setBooks] = useState<Book[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -55,7 +58,14 @@ export const BookDashboard = () => {
         );
     }
 
-
+    const formsComponents: Record<string, React.ReactNode> = {
+            edit: (
+                <EditBook 
+                    bookIdToEdit={modalState?.id || ""} 
+                    onClose={() => setModalState(null)} 
+                />
+            )
+        };
 
     return (
         <>
@@ -96,7 +106,7 @@ export const BookDashboard = () => {
                                     <td>{book.copyright_date}</td>
                                     <td>{book.status}</td>
                                     <td>{book.condition}</td>
-                                    <th><button className='btn btn-circle btn-warning w-20'>EDIT</button></th>
+                                    <th><button onClick={() => setModalState({ type: "edit", id: book.book_id })} className='btn btn-circle btn-warning w-20'>EDIT</button></th>
                                     <th><button className='btn btn-circle btn-error w-20'>DELETE</button></th>
                                 </tr>
                             ))
@@ -108,6 +118,17 @@ export const BookDashboard = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Checks if activeForms has a string */}
+            {modalState && (
+                <div className="fixed bg-black/50 min-h-screen z-10 w-screen flex justify-center items-center top-0 left-0">
+                    <div className="bg-info-content p-8 w-150 h-150">
+                        <div className="flex flex-col gap-4">
+                            {formsComponents[modalState.type]}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };

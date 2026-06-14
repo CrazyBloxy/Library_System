@@ -73,7 +73,7 @@ router.post("/borrowform", async (req: Request, res: Response) => {
         if (book.status === "Not Available") {
             const reason = book.condition === "Lost"
                 ? "This book is marked as Lost."
-                : "This book is currently checked out.";
+                : "This book is currently checked out or not available.";
 
             return res.status(400).json({
                 message: `Transaction Denied. ${reason}`
@@ -385,25 +385,60 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
 router.put("/admin/student/:student_id", async (req: Request, res: Response) => {
     try {
         const { student_id } = req.params;
-        const { student_id: new_student_id, name, section, active } = req.body;
+        const { new_student_id, name, section, active } = req.body;
 
-        if (student_id !== new_student_id) {
+        // Stop process if the admin sent absolutely nothing to update
+        if (!new_student_id && !name && !section && active === undefined) {
+            return res.status(400).json({ message: "No update fields were provided." });
+        }
+
+        // Verify that changing a students id won't duplicate an existing asset
+        if (new_student_id && student_id !== new_student_id) {
             const conflictCheck = await pool.query("SELECT * FROM students WHERE student_id = $1", [new_student_id]);
             if (conflictCheck.rows.length > 0) {
                 return res.status(400).json({ message: "Student ID already exists." });
             }
         }
 
+        // DYNAMIC QUERY BUILDING MATRIX
+        const setClauses: string[] = [];
+        const queryValues: any[] = [];
+        let paramIndex = 1;
+
+        if (new_student_id && String(new_student_id).trim() !== "") {
+            setClauses.push(`student_id = $${paramIndex++}`);
+            queryValues.push(new_student_id);
+        }
+        
+        if (name && String(name).trim() !== "") {
+            setClauses.push(`name = $${paramIndex++}`);
+            queryValues.push(name);
+        }
+        
+        if (section && String(section).trim() !== "") {
+            setClauses.push(`section = $${paramIndex++}`);
+            queryValues.push(section);
+        }
+        
+        if (active !== undefined && active !== "") {
+            setClauses.push(`active = $${paramIndex++}`);
+            queryValues.push(active === true || active === "true");
+        }
+
+        if (setClauses.length === 0) {
+            return res.status(400).json({ message: "Please fill out at least one modification field." });
+        }
+
+        const whereIndex = paramIndex;
+        queryValues.push(student_id); 
+
         const query = `
             UPDATE students 
-            SET student_id = $1,
-                name = $2, 
-                section = $3, 
-                active = $4
-            WHERE student_id = $5
+            SET ${setClauses.join(", ")}
+            WHERE student_id = $${whereIndex}
             RETURNING *;
         `;
-        const result = await pool.query(query, [new_student_id, name, section, active, student_id]);
+        const result = await pool.query(query, queryValues);
 
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "Student record not found in the master index." });
@@ -424,27 +459,69 @@ router.put("/admin/student/:student_id", async (req: Request, res: Response) => 
 router.put("/admin/book/:book_id", async (req: Request, res: Response) => {
     try {
         const { book_id } = req.params;
-        const { book_id: new_book_id, title, author, copyright_date, status, condition } = req.body;
+        const { new_book_id, title, author, copyright_date, status, condition } = req.body;
 
-        if (book_id !== new_book_id) {
+        // Stop process if the admin sent absolutely nothing to update
+        if (!new_book_id && !title && !author && !copyright_date && !status && !condition) {
+            return res.status(400).json({ message: "No update fields were provided." });
+        }
+
+        // Verify that changing a book's barcode won't duplicate an existing asset
+        if (new_book_id && book_id !== new_book_id) {
             const conflictCheck = await pool.query("SELECT * FROM books WHERE book_id = $1", [new_book_id]);
             if (conflictCheck.rows.length > 0) {
-                return res.status(400).json({ message: "The new barcode code already exists." });
+                return res.status(400).json({ message: "Transaction Denied. The new barcode ID code already exists in your inventory catalog." });
             }
         }
 
-        const query = `
+        // DYNAMIC QUERY BUILDING MATRIX
+        const setClauses: string[] = [];
+        const queryValues: any[] = [];
+        let paramIndex = 1;
+
+        if (new_book_id && String(new_book_id).trim() !== "") {
+            setClauses.push(`book_id = $${paramIndex++}`);
+            queryValues.push(new_book_id);
+        }
+        if (title && String(title).trim() !== "") {
+            setClauses.push(`title = $${paramIndex++}`);
+            queryValues.push(title);
+        }
+        if (author && String(author).trim() !== "") {
+            setClauses.push(`author = $${paramIndex++}`);
+            queryValues.push(author);
+        }
+        if (copyright_date && String(copyright_date).trim() !== "") {
+            setClauses.push(`copyright_date = $${paramIndex++}`);
+            queryValues.push(copyright_date);
+        }
+        if (status && String(status).trim() !== "") {
+            setClauses.push(`status = $${paramIndex++}`);
+            queryValues.push(status);
+        }
+        if (condition && String(condition).trim() !== "") {
+            setClauses.push(`condition = $${paramIndex++}`);
+            queryValues.push(condition);
+        }
+
+        // Double check if any valid layout parameters passed the criteria gates
+        if (setClauses.length === 0) {
+            return res.status(400).json({ message: "Please fill out at least one catalog property to modify." });
+        }
+
+        const whereIndex = paramIndex;
+        queryValues.push(book_id);
+
+        // Assemble the dynamic update template literal string
+        const dynamicQuery = `
             UPDATE books 
-            SET book_id = $1,
-                title = $2, 
-                author = $3, 
-                copyright_date = $4, 
-                status = $5, 
-                condition = $6
-            WHERE book_id = $7
+            SET ${setClauses.join(", ")}
+            WHERE book_id = $${whereIndex}
             RETURNING *;
         `;
-        const result = await pool.query(query, [new_book_id, title, author, copyright_date, status, condition, book_id]);
+
+        // 6. FIXED PARAMETER PASSING: Executes query utilizing the dynamic queryValues array!
+        const result = await pool.query(dynamicQuery, queryValues);
 
         if (result.rowCount === 0) {
             return res.status(404).json({ message: "Book barcode identifier not found in warehouse index." });

@@ -8,13 +8,11 @@ interface closeModal {
     onClose: () => void;
 }
 
-
 export const BorrowForm = ({ onClose }: closeModal) => {
     const [form, setForm] = useState({ student_id: "", book_id: "" });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();

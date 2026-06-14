@@ -4,8 +4,10 @@ import { TbDatabaseSearch } from "react-icons/tb";
 /* Services (Backend API) & Types */
 import api from "../../services/api";
 import type { Student } from '../types/index';
+import { EditStudent } from './forms/EditStudent';
 
 export const StudentDashboard = () => {
+    const [modalState, setModalState] = useState<{ type: string; id: string } | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -43,6 +45,15 @@ export const StudentDashboard = () => {
         );
     }
 
+    const formsComponents: Record<string, React.ReactNode> = {
+        edit: (
+            <EditStudent 
+                studentIdToEdit={modalState?.id || ""} 
+                onClose={() => setModalState(null)} 
+            />
+        )
+    };
+
     // Search Filter
     const filteredStudents = students.filter((student) => {
         const query = searchQuery.toLowerCase();
@@ -52,7 +63,6 @@ export const StudentDashboard = () => {
             student.section?.toLowerCase().includes(query)
         );
     });
-
 
     return (
         <>
@@ -67,7 +77,6 @@ export const StudentDashboard = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </label>
-
 
             {/* Database Table */}
             <div className="overflow-y-auto max-h-96 h-96 mt-3 mx-auto w-full max-w-6xl flex flex-col border-4 rounded-lg">
@@ -94,7 +103,7 @@ export const StudentDashboard = () => {
                                             {student.active ? "Active" : "Inactive"}
                                         </span>
                                     </td>
-                                    <th><button className='btn btn-circle btn-warning w-20'>EDIT</button></th>
+                                    <th><button onClick={() => setModalState({ type: "edit", id: student.student_id })} className='btn btn-circle btn-warning w-20'>EDIT</button></th>
                                     <th><button className='btn btn-circle btn-error w-20'>DELETE</button></th>
 
                                 </tr>
@@ -107,6 +116,17 @@ export const StudentDashboard = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Checks if activeForms has a string */}
+            {modalState && (
+                <div className="fixed bg-black/50 min-h-screen z-10 w-screen flex justify-center items-center top-0 left-0">
+                    <div className="bg-info-content p-8 w-150 h-150">
+                        <div className="flex flex-col gap-4">
+                            {formsComponents[modalState.type]}
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 };
