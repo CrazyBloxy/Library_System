@@ -5,11 +5,12 @@ import type { Data_Logs } from '../../types/index';
 
 interface closeModal {
     onClose: () => void;
+    onLogAction: (logId: number, updatedLog: any | null) => void;
 }
 
 
 
-export const ReturnApproval = ({ onClose }: closeModal) => {
+export const ReturnApproval = ({ onClose, onLogAction }: closeModal) => {
     const [logs, setLogs] = useState<Data_Logs[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -53,6 +54,10 @@ export const ReturnApproval = ({ onClose }: closeModal) => {
 
             if (response.status === 200 || response.status === 201) {
                 setSuccessMessage(response.data.message);
+
+                if (response.data?.data) {
+                    onLogAction(logId, response.data.data);
+                }
 
                 // Filters out the approved item from local state array
                 setLogs((prevLogs) => prevLogs.filter((log) => log.id !== logId));

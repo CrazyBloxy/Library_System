@@ -15,12 +15,6 @@ export const Dashboard = () => {
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
-    const formsComponents: Record<string, React.ReactNode> = {
-        borrow: <BorrowApproval onClose={() => setActiveForm(null)} />,
-        return: <ReturnApproval onClose={() => setActiveForm(null)} />
-    }
-
-
     useEffect(() => {
         const fetchLogs = async () => {
             try {
@@ -52,6 +46,46 @@ export const Dashboard = () => {
             </div>
         );
     }
+
+    const handleUpdateLogState = (logId: number, updatedLog: Data_Logs | null) => {
+        setLogs((prevLogs) => {
+            if (updatedLog === null) {
+                // If null is passed (Decline/Delete action), sweep the row out entirely
+                return prevLogs.filter((log) => log.id !== logId);
+            }
+            // If an object is passed (Approve action), map through and swap the data array matrix cleanly
+            return prevLogs.map((log) => (log.id === logId ? updatedLog : log));
+        });
+    };
+
+    const formsComponents: Record<string, React.ReactNode> = {
+        borrow: (
+            <BorrowApproval 
+                onClose={() => setActiveForm(null)} 
+                onLogAction={handleUpdateLogState} // Pass callback prop
+            />
+        ),
+        return: (
+            <ReturnApproval 
+                onClose={() => setActiveForm(null)} 
+                onLogAction={handleUpdateLogState} // Pass callback prop
+            />
+        )
+    };
+
+
+    const formatTimestamp = (dateString: string | null) => {
+        if (!dateString) return <span className="text-base-400 font-mono">—</span>;
+
+        return new Date(dateString).toLocaleString("en-PH", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+        });
+    };
 
     // Search Filter
     const filteredLogs = logs.filter((log) => {
@@ -110,8 +144,8 @@ export const Dashboard = () => {
                                     <td>{log.section}</td>
                                     <td>{log.book_id}</td>
                                     <td>{log.title}</td>
-                                    <td>{log.borrow_date}</td>
-                                    <td>{log.return_date}</td>
+                                    <td className="font-mono text-xs">{formatTimestamp(log.borrow_date)}</td>
+                                    <td className="font-mono text-xs">{formatTimestamp(log.return_date)}</td>
                                     <td>{log.status}</td>
                                     <td>{log.condition}</td>
                                 </tr>

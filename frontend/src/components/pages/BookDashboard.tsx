@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { TbDatabaseSearch } from "react-icons/tb";
 /* Forms */
 import { EditBook } from "./forms/EditBook";
+import { AddBook } from "./forms/AddBook";
 /* Services (Backend API) & Types */
 import api from "../../services/api";
 import type { Book } from "../types/index";
@@ -69,12 +70,22 @@ export const BookDashboard = () => {
         );
     };
 
+    const handleAddBookState = (newBook: Book) => {
+        setBooks((prevBooks) => [...prevBooks, newBook]);
+    };
+
     const formsComponents: Record<string, React.ReactNode> = {
         edit: (
             <EditBook
                 bookIdToEdit={modalState?.id || ""}
                 onClose={() => setModalState(null)}
                 onBookUpdated={(updatedData) => handleUpdateBookState(modalState?.id || "", updatedData)}
+            />
+        ),
+        add: (
+            <AddBook
+                onClose={() => setModalState(null)}
+                onBookAdded={handleAddBookState}
             />
         )
     };
@@ -168,6 +179,11 @@ export const BookDashboard = () => {
                         </tr>)}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Opens Pop UI Forms */}
+            <div className="flex flex-row gap-3 justify-center mt-10">
+                <button onClick={() => setModalState({ type: "add", id: "" })} className="btn btn-soft"> Add Book </button>
             </div>
 
             {/* Checks if activeForms has a string */}

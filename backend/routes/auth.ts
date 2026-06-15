@@ -307,9 +307,20 @@ router.patch("/admin/accept-borrow/:id", async (req: Request, res: Response) => 
 
         await client.query("COMMIT"); // Finalize all changes
 
+        const fetchJoinedRowQuery = `
+            SELECT 
+                logs.id, logs.student_id, student.name, student.section,
+                logs.book_id, book.title, logs.borrow_date, logs.return_date, logs.status, logs.condition
+            FROM borrow_and_return_logs AS logs
+            INNER JOIN students AS student ON logs.student_id = student.student_id
+            INNER JOIN books AS book ON logs.book_id = book.book_id
+            WHERE logs.id = $1;
+        `;
+        const completeRowResult = await pool.query(fetchJoinedRowQuery, [id]);
+
         res.status(200).json({
             message: "Borrow request approved successfully and inventory locked!",
-            data: logResult.rows[0]
+            data: completeRowResult.rows[0]
         });
 
     } catch (err: any) {
@@ -328,7 +339,7 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
         const { id } = req.params;
         const { book_condition } = req.body;
 
-         if (!book_condition) {
+        if (!book_condition) {
             return res.status(400).json({ message: "Book condition is missing." });
         }
 
@@ -365,9 +376,20 @@ router.patch("/admin/accept-return/:id", async (req: Request, res: Response) => 
 
         await client.query("COMMIT"); // Finalize all changes
 
+        const fetchJoinedRowQuery = `
+            SELECT 
+                logs.id, logs.student_id, student.name, student.section,
+                logs.book_id, book.title, logs.borrow_date, logs.return_date, logs.status, logs.condition
+            FROM borrow_and_return_logs AS logs
+            INNER JOIN students AS student ON logs.student_id = student.student_id
+            INNER JOIN books AS book ON logs.book_id = book.book_id
+            WHERE logs.id = $1;
+        `;
+        const completeRowResult = await pool.query(fetchJoinedRowQuery, [id]);
+
         res.status(200).json({
-            message: "Return request approved successfully and inventory locked!",
-            data: logResult.rows[0]
+            message: "Return request approved successfully!",
+            data: completeRowResult.rows[0]
         });
 
     } catch (err: any) {
@@ -409,17 +431,17 @@ router.put("/admin/student/:student_id", async (req: Request, res: Response) => 
             setClauses.push(`student_id = $${paramIndex++}`);
             queryValues.push(new_student_id);
         }
-        
+
         if (name && String(name).trim() !== "") {
             setClauses.push(`name = $${paramIndex++}`);
             queryValues.push(name);
         }
-        
+
         if (section && String(section).trim() !== "") {
             setClauses.push(`section = $${paramIndex++}`);
             queryValues.push(section);
         }
-        
+
         if (active !== undefined && active !== "") {
             setClauses.push(`active = $${paramIndex++}`);
             queryValues.push(active === true || active === "true");
@@ -430,7 +452,7 @@ router.put("/admin/student/:student_id", async (req: Request, res: Response) => 
         }
 
         const whereIndex = paramIndex;
-        queryValues.push(student_id); 
+        queryValues.push(student_id);
 
         const query = `
             UPDATE students 
