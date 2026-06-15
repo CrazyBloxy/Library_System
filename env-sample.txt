@@ -1,3 +1,7 @@
+Note: Make sure you add this to your frontend and backend in order to run the project fully.
+
+Make a .env file in both frontend and backend.
+
 =============== FRONTEND ================
 
 VITE_BACKEND_API = # API here
