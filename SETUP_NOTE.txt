@@ -1,6 +1,8 @@
 Note: Make sure you add this to your frontend and backend in order to run the project fully.
 
-Make a .env file in both frontend and backend.
+Make .env file in both frontend and backend one per each.
+
+Make sure to use the DATABASE TEMPLATE to fully test out this project.
 
 =============== FRONTEND ================
 
