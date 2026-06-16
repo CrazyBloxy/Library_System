@@ -74,7 +74,7 @@ export const EditBook = ({ bookIdToEdit, onClose, onBookUpdated }: closeModal) =
     return (
         <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
             
-            {/* System Status Notifications Viewport Banner Box */}
+            {/* System Status Notifications */}
             <div className="w-full max-w-md min-h-12 flex items-center justify-center mb-2">
                 {success && (
                     <div className="alert alert-success w-full text-sm py-2 justify-center text-center animate-fade-in shadow-md">

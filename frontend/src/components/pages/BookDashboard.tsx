@@ -62,6 +62,7 @@ export const BookDashboard = () => {
         );
     }
 
+    // Update Handler
     const handleUpdateBookState = (originalTargetBarcode: string, updatedBook: Book) => {
         setBooks((prevBooks) =>
             prevBooks.map((book) =>
@@ -74,6 +75,7 @@ export const BookDashboard = () => {
         setBooks((prevBooks) => [...prevBooks, newBook]);
     };
 
+    // Form Functions
     const formsComponents: Record<string, React.ReactNode> = {
         edit: (
             <EditBook
@@ -90,6 +92,7 @@ export const BookDashboard = () => {
         )
     };
 
+    // Delete Handler
     const handleDeleteBook = async (bookId: string, bookTitle: string) => {
         // Prevents accidental deletion
         const confirmDelete = window.confirm(`Are you absolutely sure you want to permanently delete "${bookTitle}" (${bookId})?`);

@@ -54,6 +54,7 @@ export const StudentDashboard = () => {
         );
     };
 
+    // Form Functions
     const formsComponents: Record<string, React.ReactNode> = {
         edit: (
             <EditStudent

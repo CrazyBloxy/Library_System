@@ -37,6 +37,7 @@ export const ReturnApproval = ({ onClose, onLogAction }: closeModal) => {
         fetchLogs();
     }, []);
 
+    // Accept Button Handler
     const handleAcceptReturn = async (logId: number, condition?: "Good" | "Damaged") => {
         if (!condition) {
             setError("Please choose a book condition selection status before approving.");

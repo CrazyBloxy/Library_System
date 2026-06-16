@@ -61,7 +61,7 @@ export const AddBook = ({ onClose, onBookAdded }: closeModal) => {
     return (
         <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
             
-            {/* Visual Alert Area Boundary Wrapper Matrix System */}
+            {/* System Status Notifications */}
             <div className="w-full max-w-md min-h-12 flex items-center justify-center mb-2">
                 {success && (
                     <div className="alert alert-success w-full text-sm py-2 justify-center text-center animate-fade-in shadow-md">
@@ -79,7 +79,7 @@ export const AddBook = ({ onClose, onBookAdded }: closeModal) => {
             <div className="flex justify-center items-center flex-col space-y-4 w-full">
                 <h1 className="text-blue-300 text-4xl font-medium tracking-wide text-center">Add New Book</h1>
 
-                {/* Input Fields Container Matrix */}
+                {/* Input Fields */}
                 <label className="input validator w-full max-w-md">
                     <FaIdBadge />
                     <input
@@ -141,7 +141,7 @@ export const AddBook = ({ onClose, onBookAdded }: closeModal) => {
                     <option value="Not Available">Not Available</option>
                 </select>
 
-                {/* Material Condition Status Input Dropdown */}
+                {/* Condition Status Input Dropdown */}
                 <select 
                     required
                     className="select select-bordered select-sm w-full max-w-md bg-base-100 text-xs focus:outline-none"
