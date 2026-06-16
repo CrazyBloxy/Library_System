@@ -59,7 +59,7 @@ export const StudentDashboard = () => {
             <EditStudent
                 studentIdToEdit={modalState?.id || ""}
                 onClose={() => setModalState(null)}
-                onStudentUpdated={(updatedData) => handleUpdateStudentState(modalState?.id || "", updatedData)} 
+                onStudentUpdated={(updatedData) => handleUpdateStudentState(modalState?.id || "", updatedData)}
             />
         )
     };
@@ -125,7 +125,13 @@ export const StudentDashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredStudents.length > 0 ? (
+                        {students.length === 0 ? (
+                            <tr>
+                                <td colSpan={10} className="text-center text-2xl py-12 text-base-400 font-semibold">
+                                    No Student Data found in the system.
+                                </td>
+                            </tr>
+                        ) : filteredStudents.length > 0 ? (
                             filteredStudents.map((student) => (
                                 <tr key={student.student_id}>
                                     <td>{student.student_id}</td>
@@ -152,7 +158,6 @@ export const StudentDashboard = () => {
                                             "DELETE"
                                         )}
                                     </button></th>
-
                                 </tr>
                             ))
                         ) : (<tr>

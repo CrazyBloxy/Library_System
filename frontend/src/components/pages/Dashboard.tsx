@@ -58,22 +58,23 @@ export const Dashboard = () => {
         });
     };
 
+    // Form Functions
     const formsComponents: Record<string, React.ReactNode> = {
         borrow: (
-            <BorrowApproval 
-                onClose={() => setActiveForm(null)} 
-                onLogAction={handleUpdateLogState} // Pass callback prop
+            <BorrowApproval
+                onClose={() => setActiveForm(null)}
+                onLogAction={handleUpdateLogState}
             />
         ),
         return: (
-            <ReturnApproval 
-                onClose={() => setActiveForm(null)} 
-                onLogAction={handleUpdateLogState} // Pass callback prop
+            <ReturnApproval
+                onClose={() => setActiveForm(null)}
+                onLogAction={handleUpdateLogState}
             />
         )
     };
 
-
+    // Date Format
     const formatTimestamp = (dateString: string | null) => {
         if (!dateString) return <span className="text-base-400 font-mono">—</span>;
 
@@ -135,7 +136,13 @@ export const Dashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredLogs.length > 0 ? (
+                        {logs.length === 0 ? (
+                            <tr>
+                                <td colSpan={10} className="text-center text-2xl py-12 text-base-400 font-semibold">
+                                    No transaction logs found in the system.
+                                </td>
+                            </tr>
+                        ) : filteredLogs.length > 0 ? (
                             filteredLogs.map((log) => (
                                 <tr key={log.id}>
                                     <td>{log.id}</td>
@@ -150,11 +157,13 @@ export const Dashboard = () => {
                                     <td>{log.condition}</td>
                                 </tr>
                             ))
-                        ) : (<tr>
-                            <td colSpan={12} className="text-center text-2xl py-12 text-base-400 font-semibold">
-                                No Log match your search query "{searchQuery}"
-                            </td>
-                        </tr>)}
+                        ) : (
+                            <tr>
+                                <td colSpan={10} className="text-center text-2xl py-12 text-base-400 font-semibold">
+                                    No Log match your search query "{searchQuery}"
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

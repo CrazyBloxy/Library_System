@@ -414,6 +414,19 @@ router.put("/admin/student/:student_id", async (req: Request, res: Response) => 
             return res.status(400).json({ message: "No update fields were provided." });
         }
 
+        const activeLogCheck = await pool.query(
+            `SELECT * FROM borrow_and_return_logs 
+                 WHERE student_id = $1 
+                 AND status IN ('Pending Borrow', 'Checked Out', 'Pending Return')`,
+            [student_id]
+        );
+
+        if (activeLogCheck.rows.length > 0) {
+            return res.status(400).json({
+                message: "Cannot modify Student ID. This student currently has active transactions."
+            });
+        }
+
         // Verify that changing a students id won't duplicate an existing asset
         if (new_student_id && student_id !== new_student_id) {
             const conflictCheck = await pool.query("SELECT * FROM students WHERE student_id = $1", [new_student_id]);
@@ -486,6 +499,19 @@ router.put("/admin/book/:book_id", async (req: Request, res: Response) => {
         // Stop process if the admin sent absolutely nothing to update
         if (!new_book_id && !title && !author && !copyright_date && !status && !condition) {
             return res.status(400).json({ message: "No update fields were provided." });
+        }
+
+        const activeLogCheck = await pool.query(
+            `SELECT * FROM borrow_and_return_logs 
+                 WHERE book_id = $1 
+                 AND status IN ('Pending Borrow', 'Checked Out', 'Pending Return')`,
+            [book_id]
+        );
+
+        if (activeLogCheck.rows.length > 0) {
+            return res.status(400).json({
+                message: "Cannot modify Book ID. This Book currently has active transactions."
+            });
         }
 
         // Verify that changing a book's barcode won't duplicate an existing asset

@@ -144,7 +144,13 @@ export const BookDashboard = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredBooks.length > 0 ? (
+                        {books.length === 0 ? (
+                            <tr>
+                                <td colSpan={10} className="text-center text-2xl py-12 text-base-400 font-semibold">
+                                    No Book Data found in the system.
+                                </td>
+                            </tr>
+                        ) : filteredBooks.length > 0 ? (
                             filteredBooks.map((book) => (
                                 <tr key={book.book_id}>
                                     <td>{book.book_id}</td>
